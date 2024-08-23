@@ -67,57 +67,11 @@ def unique_email():
     return fake.email()
 
 
-@pytest.fixture
-def valid_user_data(unique_email):
-    """Возвращает корректные данные пользователя с уникальным email."""
-    return {
-        "email": unique_email,
-        "password": fake.password(length=12),
-        "name": fake.name()
-    }
-
 
 @pytest.fixture
-def updated_user_data():
-    """Возвращает новые данные для обновления пользователя."""
-    return {
-        "email": fake.email(),
-        "password": fake.password(length=12),
-        "name": fake.name()
-    }
-
-
-@pytest.fixture
-def create_user_and_get_tokens(valid_user_data):
-    """Создает пользователя и возвращает его accessToken и refreshToken."""
-    response = register_user(USER_REGISTER, valid_user_data)
-    data = response.json()
-    tokens = {
-        "accessToken": data["accessToken"],
-        "refreshToken": data["refreshToken"]
-    }
-    return tokens
-
-
-@pytest.fixture
-def incomplete_user_data():
-    """Возвращает данные пользователя с отсутствующими полями."""
-    return [
-        {"email": fake.email(), "name": fake.name()},
-        {"password": fake.password(length=12), "name": fake.name()},
-        {"email": fake.email(), "password": fake.password(length=12)}
-    ]
-
-
-@pytest.fixture
-def delete_user():
+def delete_user(access_token):
     """Удаляет пользователя по его accessToken."""
-    def _delete_user(access_token):
-        headers = {"Authorization": access_token}
-        response = requests.delete(USER_DELETE, headers=headers)
+    headers = {"Authorization": access_token}
+    response = requests.delete(USER_DELETE, headers=headers)
 
-        assert response.status_code == 202
-        assert response.json()["success"] is True
-        assert response.json()["message"] == "User successfully removed"
-
-    return _delete_user
+    return response.status_code, response.json()
